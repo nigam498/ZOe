@@ -1,31 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JavaScript Lexical Environment</title>
-<script>
-// Global scope
-let globalVar = 10;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            min-height: 100vh; /* Set minimum height to occupy full viewport height */
+            background-color: #000000; /* Black background */
+        }
 
-function outerFunction() {
-    let outerVar = 20; // Outer function's local variable
-    
-    function innerFunction() {
-        let innerVar = 30; // Inner function's local variable
-        console.log("innerVar:", innerVar);
-        console.log("outerVar (from inner function):", outerVar); // Accessing outer function's variable
-        console.log("globalVar (from inner function):", globalVar); // Accessing global variable
-    }
-    
-    innerFunction();
-    console.log("outerVar (from outer function):", outerVar); // Accessing outer function's variable
-}
+        #container {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #ffffff; /* White background */
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Shadow effect */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%; /* Adjusted width */
+            max-width: 800px; /* Set maximum width to ensure content doesn't stretch too wide on larger screens */
+        }
 
-outerFunction();
-console.log("globalVar (from global scope):", globalVar); // Accessing global variable
-</script>
+        #title {
+            font-size: 32px; /* Larger font size */
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333333; /* Dark grey text color */
+            text-align: center;
+        }
+
+        #menu-bar {
+            background-color: #4CAF50; /* Green menu bar */
+            color: white;
+            padding: 10px 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            margin-bottom: 20px; /* Added margin */
+        }
+
+        #footer {
+            background-color: #4CAF50; /* Green footer */
+            color: white;
+            padding: 40px; /* Larger padding for footer */
+            width: 100%;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            margin-top: 20px; /* Added margin */
+            text-align: center; /* Center align text */
+            font-size: 32px; /* Larger font size */
+        }
+
+        #inputs-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* Adjusted width */
+            margin-bottom: 20px; /* Added margin */
+        }
+
+        label {
+            font-size: 35px; /* Larger font size */
+            margin-bottom: 10px; /* Adjusted margin */
+            color: #555555; /* Grey text color */
+        }
+
+        input[type="text"] {
+            width: 100%; /* Adjusted width to occupy full container width */
+            max-width: 300px; /* Set maximum width to prevent stretching on larger screens */
+            padding: 12px; /* Adjusted padding */
+            margin-bottom: 15px;
+            border: 1px solid #dddddd; /* Light grey border */
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 12px 24px; /* Adjusted padding */
+            background-color: #4CAF50; /* Green button color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 18px; /* Larger font size */
+            margin-bottom: 10px; /* Adjusted margin */
+        }
+
+        button:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        #details-container {
+            width: 100%; /* Adjusted width */
+            overflow-y: auto; /* Added overflow for scrolling */
+            max-height: 200px; /* Max height for scroll */
+        }
+
+        #details {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dddddd; /* Light grey border */
+            border-radius: 5px;
+            resize: none;
+            font-size: 16px; /* Larger font size */
+        }
+
+        /* Calculator modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>ODDS CHART GENERATOR</title>
 </head>
+
 <body>
+    <div id="container">
+        <div id="menu-bar">
+            <div></div>
+            <h1 id="title">ODDS CHART GENERATOR</h1>
+            <div></div>
+        </div>
+        <div id="inputs-container">
+            <label for="teamAOdds">Odds Team A:</label>
+            <input type="text" id="teamAOdds">
+
+            <label for="teamBOdds">Odds Team B:</label>
+            <input type="text" id="teamBOdds">
+
+            <button onclick="updateGraph()">Update Graph</button>
+            <button onclick="refreshGraph()">Refresh Graph</button>
+            <button onclick="openCalculator()">Open Calculator</button>
+        </div>
+
+        <div id="graph-container">
+            <div id="odds-graph"></div>
+        </div>
+
+        <div id="details-container">
+            <textarea id="details" rows="10" readonly></textarea>
+        </div>
+    </div>
+
+    <div id="footer">
+        <ol>
+            <li>Enter the odds for Team A and Team B in their respective input fields.</li>
+            <li>Click the "Update Graph" button to generate the odds line chart.</li>
+            <li>Use the "Refresh Graph" button to clear the chart and start over.</li>
+            <li>Use the calculator to calculate your bet.</li>
+        </ol>
+    </div>
+
+    <!-- Calculator Modal -->
+    <div id="calculatorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCalculator()">&times;</span>
+            <p>Basic Calculator</p>
+            <div>
+                <input type="text" id="calculatorInput" disabled>
+            </div>
+            <div>
+                <button onclick="addToCalculator('1')">1</button>
+                <button onclick="addToCalculator('2')">2</button>
+                <button onclick="addToCalculator('3')">3</button>
+                <button onclick="addToCalculator('+')">+</button>
+            </div>
+            <div>
+                <button onclick="addToCalculator('4')">4</button>
+                <button onclick="addToCalculator('5')">5</button>
+                <button onclick="addToCalculator('6')">6</button>
+                <button onclick="addToCalculator('-')">-</button>
+            </div>
+            <div>
+                <button onclick="addToCalculator('7')">7</button>
+                <button onclick="addToCalculator('8')">8</button>
+                <button onclick="addToCalculator('9')">9</button>
+                <button onclick="addToCalculator('*')">*</button>
+            </div>
+            <div>
+                <button onclick="addToCalculator('0')">0</button>
+                <button onclick="clearCalculator()">C</button>
+                <button onclick="calculate()">=</button>
+                <button onclick="addToCalculator('/')">/</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dataPoints = [];
+
+        function updateGraph() {
+            const oddsTeamAInput = parseFloat(document.getElementById("teamAOdds").value);
+            const oddsTeamBInput = parseFloat(document.getElementById("teamBOdds").value);
+
+            if (isNaN(oddsTeamAInput) || isNaN(oddsTeamBInput)) {
+                alert("Invalid input. Please enter valid numeric odds.");
+                return;
+            }
+
+            const timeNow = new Date();
+            const detailsTextArea = document.getElementById("details");
+            detailsTextArea.value += `Time: ${timeNow}, Team A Odds: ${oddsTeamAInput}, Team B Odds: ${oddsTeamBInput}\n`;
+
+            dataPoints.push({
+                time: timeNow,
+                oddsTeamA: oddsTeamAInput,
+                oddsTeamB: oddsTeamBInput
+            });
+
+            Plotly.newPlot('odds-graph', [
+                { x: dataPoints.map(point => point.time), y: dataPoints.map(point => point.oddsTeamA), type: 'scatter', mode: 'lines+markers', name: 'Team A' },
+                { x: dataPoints.map(point => point.time), y: dataPoints.map(point => point.oddsTeamB), type: 'scatter', mode: 'lines+markers', name: 'Team B' },
+            ], {
+                xaxis: { title: 'Time and Odds', tickmode: 'auto', tickvals: dataPoints.map(point => point.time), ticktext: dataPoints.map(point => `${point.time} - ${point.oddsTeamA}/${point.oddsTeamB}`) },
+                yaxis: { title: 'Odds' },
+                title: 'Odds Chart'
+            });
+        }
+
+        function refreshGraph() {
+            dataPoints = [];
+            document.getElementById("details").value = "";
+            document.getElementById("odds-graph").innerHTML = "";
+        }
+
+        function openCalculator() {
+            document.getElementById("calculatorModal").style.display = "block";
+        }
+
+        function closeCalculator() {
+            document.getElementById("calculatorModal").style.display = "none";
+        }
+
+        function addToCalculator(value) {
+            document.getElementById("calculatorInput").value += value;
+        }
+
+        function clearCalculator() {
+            document.getElementById("calculatorInput").value = '';
+        }
+
+        function calculate() {
+            try {
+                const result = eval(document.getElementById("calculatorInput").value);
+                document.getElementById("calculatorInput").value = result;
+            } catch (error) {
+                document.getElementById("calculatorInput").value = 'Error';
+            }
+        }
+    </script>
 </body>
+
 </html>
